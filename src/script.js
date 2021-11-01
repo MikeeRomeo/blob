@@ -149,8 +149,6 @@ const vertexShader = `
   }  
 `;
 
-
-
 const fragmentShader = `
 varying vec2 v_uv;
   uniform vec2 u_mouse;
