@@ -211,7 +211,8 @@ class Scene {
         uSpeed: { value: settings.speed },
         uNoiseDensity: { value: settings.density },
         uNoiseStrength: { value: settings.strength },
-      },
+        map: { value: dot },
+      }
     });
     this.mesh = new THREE.Mesh(geometry, material);
     this.scene.add(this.mesh);
