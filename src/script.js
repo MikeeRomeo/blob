@@ -1,22 +1,29 @@
-import './style.css'
-import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import * as dat from 'dat.gui'
+import "./style.css";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import * as dat from "dat.gui";
 
 const gui = new dat.GUI();
 
 const settings = {
-  speed: 0.1,
+  speed: 0.05,
   density: 1.5,
-  strength: 0.2,
+  strength: 0.3,
+  pointSize: 1.2,
 };
-gui.add(settings, 'speed', 0.1, 1, 0.01);
-gui.add(settings, 'density', 0, 10, 0.01);
-gui.add(settings, 'strength', 0, 2, 0.01);
+gui.add(settings, "speed", 0.01, 1, 0.01);
+gui.add(settings, "density", 0, 10, 0.01);
+gui.add(settings, "strength", 0, 2, 0.01);
+gui.add(settings, "pointSize", 0, 2, 0.01);
 
-// loading
-const textureLoader = new THREE.TextureLoader();
-const dot = textureLoader.load('/textures/dot.png');
+/**
+ * Mouse and target coords
+ * **/
+let mouseX = 0;
+let mouseY = 0;
+let targetX = 0;
+let targetY = 0;
+let speedMod = 0.001;
 
 const noise = `
   // GLSL textureless classic 3D noise "cnoise",
@@ -134,6 +141,7 @@ const vertexShader = `
   uniform float uSpeed;
   uniform float uNoiseDensity;
   uniform float uNoiseStrength;
+  uniform float uPointSize;
   
   ${noise}
   
@@ -144,61 +152,76 @@ const vertexShader = `
     vec3 pos = position + (normal * distortion);
     
     vNormal = normal;
-
+    gl_PointSize = uPointSize;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.);
   }  
 `;
 
 const fragmentShader = `
-varying vec2 v_uv;
+  varying vec2 v_uv;
   uniform vec2 u_mouse;
   uniform vec2 u_resolution;
   uniform vec3 u_color;
   uniform float u_time;
-
+  uniform vec3 uColor;
+  
   void main() {
     vec2 v = u_mouse / u_resolution;
     vec2 uv = gl_FragCoord.xy / u_resolution;
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0).rgba;
+
+    gl_FragColor = vec4(uColor, 1.0).rgba;
   }
 `;
 
+// const btn = document.querySelector("#change-effect-1");
+// btn.addEventListener("click", function(){
+//   morphObject();
+// });
+
+// function morphObject(){
+//   console.log('morphing time');
+//   settings.strength = 1; 
+//   setTimeout(function(){ 
+//     console.log("Hello");
+//     settings.strength = 0.2; 
+//   }, 1000);
+// }
 class Scene {
   constructor() {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor('white', 1);
-    
+    this.renderer.setClearColor("white", 1);
+
     this.camera = new THREE.PerspectiveCamera(
       45,
       window.innerWidth / window.innerHeight,
       0.1,
       1000
     );
-    this.camera.position.set(0, 0, 5);    
-    
+    this.camera.position.set(0, 0, 5);
+
     this.scene = new THREE.Scene();
-    
+
     this.clock = new THREE.Clock();
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    
+    // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+
     this.init();
-    this.animate();    
+    this.animate();
   }
-  
+
   init() {
     this.addCanvas();
     this.addElements();
     this.addEvents();
-  } 
-  
+  }
+
   addCanvas() {
     const canvas = this.renderer.domElement;
-    canvas.classList.add('webgl');
+    canvas.classList.add("webgl");
     document.body.appendChild(canvas);
-  }  
-  
+  }
+
   addElements() {
     const geometry = new THREE.IcosahedronBufferGeometry(1, 32);
     const material = new THREE.ShaderMaterial({
@@ -209,16 +232,67 @@ class Scene {
         uSpeed: { value: settings.speed },
         uNoiseDensity: { value: settings.density },
         uNoiseStrength: { value: settings.strength },
+        uColor: { value: new THREE.Color(0x00061A) },
       },
     });
-    this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh = new THREE.Points(geometry, material);
     this.scene.add(this.mesh);
   }
-  
+
   addEvents() {
-    window.addEventListener('resize', this.resize.bind(this));
-  }  
+    window.addEventListener("resize", this.resize.bind(this));
+    document.addEventListener("mousemove", this.onDocumentMouseMove.bind(this));
+    // document.getElementById("test1").onclick = function() {this.changeBlob.bind(this)};
+    const btn = document.querySelector("#change-effect-1");
+    btn.addEventListener("click", this.animateSettings.bind(this, settings, [50, 1500, 300], [80, 1600, 400], 300));
+    const btn2 = document.querySelector("#change-effect-2");
+    btn2.addEventListener("click", this.animateRotation.bind(this, 100, 600, 300));
+    const btn3 = document.querySelector("#change-effect-3");
+    btn3.addEventListener("click", this.animateColor.bind(this, 0xEF4189));
+    const btn4 = document.querySelector("#change-effect-4");
+    btn4.addEventListener("click", this.animateColor.bind(this, 0x3311BB));
+    const btn5 = document.querySelector("#change-effect-5");
+    btn5.addEventListener("click", this.resetAllMorphs.bind(this));
+  }
+
+  animateSettings(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      obj.speed = Math.floor(progress * (end[0] - start[0]) + start[0]) / 1000;
+      obj.density = Math.floor(progress * (end[1] - start[1]) + start[1]) / 1000;
+      obj.strength = Math.floor(progress * (end[2] - start[2]) + start[2]) / 1000;
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }
+
+  animateRotation(start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      speedMod = Math.floor(progress * (end - start) + start) / 1000;
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  }
   
+  animateColor(newColor) {
+    this.mesh.material.uniforms.uColor.value = new THREE.Color(newColor);
+  }
+
+  resetAllMorphs() {
+    this.animateSettings(settings, [80, 1600, 400], [50, 1500, 300], 300);
+    this.animateRotation(600, 100, 300);
+    this.animateColor(0x00061A);
+  }
+
   resize() {
     let width = window.innerWidth;
     let height = window.innerHeight;
@@ -228,23 +302,41 @@ class Scene {
 
     this.camera.updateProjectionMatrix();
   }
-  
+
+  onDocumentMouseMove(event) {
+    const windowX = window.innerWidth / 2;
+    const windowY = window.innerHeight / 2;
+
+    mouseX = event.clientX - windowX;
+    mouseY = event.clientY - windowY;
+  }
+
   animate() {
     requestAnimationFrame(this.animate.bind(this));
     this.render();
   }
-  
+
   render() {
-    this.controls.update();
-    
+    // this.controls.update();
+
+    targetX = mouseX * 0.001;
+    targetY = mouseY * 0.001;
+
     // Update uniforms
     this.mesh.material.uniforms.uTime.value = this.clock.getElapsedTime();
-    this.mesh.material.uniforms.uSpeed.value = settings.speed;    
+    this.mesh.material.uniforms.uSpeed.value = settings.speed;
     this.mesh.material.uniforms.uNoiseDensity.value = settings.density;
     this.mesh.material.uniforms.uNoiseStrength.value = settings.strength;
 
+
+     // Update objects
+     this.mesh.rotation.y = .2 * this.clock.getElapsedTime();
+     this.mesh.rotation.y += .5 * (speedMod - this.mesh.rotation.y);
+     this.mesh.rotation.x += .05 * (speedMod - this.mesh.rotation.x);
+     this.mesh.position.z += 0.15 * (speedMod - this.mesh.rotation.x);
+
     this.renderer.render(this.scene, this.camera);
-  }  
+  }
 }
 
 new Scene();

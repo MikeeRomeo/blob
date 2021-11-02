@@ -18,4 +18,14 @@ body
     top: 0;
     left: 0;
     outline: none;
+    z-index: 0;
+}
+
+.dg{
+    z-index: 20 !important; 
+}
+
+.demo-list{
+    z-index: 10;
+    position: relative;
 }
