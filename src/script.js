@@ -1,6 +1,5 @@
 import "./style.css";
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
 
 const gui = new dat.GUI();
@@ -218,8 +217,9 @@ class Scene {
 
   addCanvas() {
     const canvas = this.renderer.domElement;
+    const canvasContainer = document.getElementById( 'canvas-container' );
     canvas.classList.add("webgl");
-    document.body.appendChild(canvas);
+    canvasContainer.appendChild(canvas);
   }
 
   addElements() {
