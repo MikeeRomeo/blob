@@ -3,7 +3,9 @@ import * as THREE from "three";
 import * as dat from "dat.gui";
 
 const gui = new dat.GUI();
-
+const canvasContainer = document.getElementById( 'canvas-container' );
+const windowHalfX = window.innerWidth / 2;
+const windowHalfY = window.innerHeight / 2;
 const settings = {
 	speed: 0.03,
 	density: 1.6,
@@ -191,12 +193,12 @@ class Scene {
 		this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 		this.renderer.setSize( canvasContainer.offsetWidth, canvasContainer.offsetHeight);
 		this.renderer.setClearColor("white", 0);
-
+    
     this.camera = new THREE.PerspectiveCamera(
       45,
       window.innerWidth / window.innerHeight,
       0.1,
-      1000
+      4
     );
     this.camera.position.set(0, 0, 4);
 
@@ -217,13 +219,12 @@ class Scene {
 
   addCanvas() {
     const canvas = this.renderer.domElement;
-    const canvasContainer = document.getElementById( 'canvas-container' );
     canvas.classList.add("webgl");
     canvasContainer.appendChild(canvas);
   }
 
   addElements() {
-    const geometry = new THREE.IcosahedronBufferGeometry(1, 32);
+    const geometry = new THREE.IcosahedronBufferGeometry(1.2, 48);
     const material = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
@@ -232,6 +233,7 @@ class Scene {
         uSpeed: { value: settings.speed },
         uNoiseDensity: { value: settings.density },
         uNoiseStrength: { value: settings.strength },
+				uPointSize: { value: settings.pointSize },
         uColor: { value: new THREE.Color(0x9d9fa8) },
       },
     });
@@ -249,7 +251,7 @@ class Scene {
     const btn = document.querySelector("#change-effect-1");
     btn.addEventListener("click", this.animateSettings.bind(this, settings, [50, 1500, 300], [80, 1600, 400], 300));
     const btn2 = document.querySelector("#change-effect-2");
-    btn2.addEventListener("click", this.animateRotation.bind(this, 100, 600, 300));
+    btn2.addEventListener("click", this.animateColor.bind(this, 0x00061a));
     const btn3 = document.querySelector("#change-effect-3");
     btn3.addEventListener("click", this.animateColor.bind(this, 0xEF4189));
     const btn4 = document.querySelector("#change-effect-4");
@@ -273,18 +275,18 @@ class Scene {
     window.requestAnimationFrame(step);
   }
 
-  animateRotation(start, end, duration) {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      speedMod = Math.floor(progress * (end - start) + start) / 1000;
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      }
-    };
-    window.requestAnimationFrame(step);
-  }
+  // animateRotation(start, end, duration) {
+  //   let startTimestamp = null;
+  //   const step = (timestamp) => {
+  //     if (!startTimestamp) startTimestamp = timestamp;
+  //     const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+  //     speedMod = Math.floor(progress * (end - start) + start) / 1000;
+  //     if (progress < 1) {
+  //       window.requestAnimationFrame(step);
+  //     }
+  //   };
+  //   window.requestAnimationFrame(step);
+  // }
   
   animateColor(newColor) {
     this.mesh.material.uniforms.uColor.value = new THREE.Color(newColor);
@@ -292,7 +294,7 @@ class Scene {
 
   resetAllMorphs() {
     this.animateSettings(settings, [80, 1600, 400], [50, 1500, 300], 300);
-    this.animateRotation(600, 100, 300);
+    // this.animateRotation(600, 100, 300);
     this.animateColor(0x00061A);
   }
 
