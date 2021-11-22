@@ -217,7 +217,7 @@ Perplex.Blob = (function () {
           uNoiseDensity: { value: settings.density },
           uNoiseStrength: { value: settings.strength },
           uPointSize: { value: settings.pointSize },
-          uColor: { value: new THREE.Color(0x00061a) },
+          uColor: { value: new THREE.Color(0xD8D9DC) },
         },
       });
       this.mesh = new THREE.Points(geometry, material);      

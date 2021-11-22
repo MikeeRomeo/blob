@@ -5,10 +5,10 @@ import * as dat from "dat.gui";
 const gui = new dat.GUI();
 
 const settings = {
-  speed: 0.05,
-  density: 1.5,
-  strength: 0.3,
-  pointSize: 1.2,
+	speed: 0.03,
+	density: 1.6,
+	strength: 0.3,
+	pointSize: 1.5,
 };
 gui.add(settings, "speed", 0.01, 1, 0.01);
 gui.add(settings, "density", 0, 10, 0.01);
@@ -187,10 +187,10 @@ const fragmentShader = `
 // }
 class Scene {
   constructor() {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setClearColor("white", 1);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true,});
+		this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+		this.renderer.setSize( canvasContainer.offsetWidth, canvasContainer.offsetHeight);
+		this.renderer.setClearColor("white", 0);
 
     this.camera = new THREE.PerspectiveCamera(
       45,
@@ -198,7 +198,7 @@ class Scene {
       0.1,
       1000
     );
-    this.camera.position.set(0, 0, 5);
+    this.camera.position.set(0, 0, 4);
 
     this.scene = new THREE.Scene();
 
@@ -232,11 +232,14 @@ class Scene {
         uSpeed: { value: settings.speed },
         uNoiseDensity: { value: settings.density },
         uNoiseStrength: { value: settings.strength },
-        uColor: { value: new THREE.Color(0x00061A) },
+        uColor: { value: new THREE.Color(0x9d9fa8) },
       },
     });
     this.mesh = new THREE.Points(geometry, material);
     this.scene.add(this.mesh);
+
+    
+		this.fog = new THREE.Fog("white", 1.9, 2.9);
   }
 
   addEvents() {
