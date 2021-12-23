@@ -11,11 +11,26 @@ const settings = {
 	density: 1.6,
 	strength: 0.3,
 	pointSize: 1.5,
+  pointColor: 0x9d9fa8,
+  backgroundColor: 0xffffff,
 };
 gui.add(settings, "speed", 0.01, 1, 0.01);
 gui.add(settings, "density", 0, 10, 0.01);
 gui.add(settings, "strength", 0, 2, 0.01);
 gui.add(settings, "pointSize", 0, 2, 0.01);
+
+gui.addColor(settings, 'pointColor').onChange(function(value) {
+
+  settings.pointColor = value;
+
+});
+
+gui.addColor(settings, 'backgroundColor').onChange(function(value) {
+
+  settings.background = value;
+
+});
+// gui.add(settings, "pointSize", 0, 2, 0.01);
 
 /**
  * Mouse and target coords
@@ -203,10 +218,11 @@ class Scene {
     this.camera.position.set(0, 0, 4);
 
     this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color( 0xff0000 );
 
     this.clock = new THREE.Clock();
     // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-
+    
     this.init();
     this.animate();
   }
@@ -216,6 +232,8 @@ class Scene {
     this.addElements();
     this.addEvents();
   }
+
+  
 
   addCanvas() {
     const canvas = this.renderer.domElement;
@@ -332,6 +350,9 @@ class Scene {
     this.mesh.material.uniforms.uSpeed.value = settings.speed;
     this.mesh.material.uniforms.uNoiseDensity.value = settings.density;
     this.mesh.material.uniforms.uNoiseStrength.value = settings.strength;
+    this.mesh.material.uniforms.uPointSize.value = settings.pointSize;
+    this.mesh.material.uniforms.uColor.value = new THREE.Color(settings.pointColor);
+    this.scene.background = new THREE.Color( settings.backgroundColor );
 
 
      // Update objects
