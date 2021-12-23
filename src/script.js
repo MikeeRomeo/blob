@@ -264,6 +264,7 @@ class Scene {
 
   addEvents() {
     window.addEventListener("resize", this.resize.bind(this));
+    this.resize();
     document.addEventListener("mousemove", this.onDocumentMouseMove.bind(this));
     // document.getElementById("test1").onclick = function() {this.changeBlob.bind(this)};
     const btn = document.querySelector("#change-effect-1");
