@@ -10,25 +10,25 @@ const settings = {
 	speed: 0.03,
 	density: 1.6,
 	strength: 0.3,
-	pointSize: 1.5,
+	pointSize: 2.8,
   pointColor: 0x9d9fa8,
   backgroundColor: 0xffffff,
 };
 gui.add(settings, "speed", 0.01, 1, 0.01);
 gui.add(settings, "density", 0, 10, 0.01);
 gui.add(settings, "strength", 0, 2, 0.01);
-gui.add(settings, "pointSize", 0, 2, 0.01);
+gui.add(settings, "pointSize", 0, 5, 0.01);
 
 gui.addColor(settings, 'pointColor').onChange(function(value) {
 
+  // value = value.replace( '#','0x' );
   settings.pointColor = value;
 
 });
 
 gui.addColor(settings, 'backgroundColor').onChange(function(value) {
-
+  // value = value.replace( '#','0x' );
   settings.background = value;
-
 });
 // gui.add(settings, "pointSize", 0, 2, 0.01);
 
